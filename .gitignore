@@ -1,3 +1,8 @@
+# node modules
 node_modules/
 
+# build output
 dist/
+
+# tetron config file generated in a dev env
+config.json

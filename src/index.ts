@@ -1,5 +1,33 @@
 import * as Gluon from "@gluon-framework/gluon";
+import { Config } from "./config.js";
 
-const TETRIO_URL = "https://tetr.io/";
+const config = Config.read();
+const gluon = await Gluon.open(config.url, {
+    windowSize: config.windowSize,
+    onLoad: () => {
+        function send(event: string, data: unknown) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            Gluon.ipc.send(event, data);
+        }
 
-Gluon.open(TETRIO_URL, {});
+        window.addEventListener("resize", (e: UIEvent) => {
+            e.view?.outerWidth;
+
+            send("window resize", { width: window.outerWidth, height: window.outerHeight });
+        });
+    },
+    onClose: () => {
+        Config.write(config);
+    }
+});
+
+type WindowResizeData = {
+    width: number;
+    height: number;
+};
+
+gluon.ipc.on("window resize", ({ width, height }: WindowResizeData) => {
+    console.log("resize", width, height);
+    config.windowSize = [width, height];
+});
