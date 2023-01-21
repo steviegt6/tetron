@@ -9,7 +9,5 @@
     },
     "author": "Tomat",
     "license": "LGPL-2.1",
-    "dependencies": {
-        "tetron-common": "file:../tetron-common"
-    }
+    "dependencies": {}
 }
