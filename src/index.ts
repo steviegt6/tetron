@@ -1,9 +1,11 @@
 import * as Gluon from "@gluon-framework/gluon";
 import { Config } from "./config.js";
+import getSwitches from "./switches.js";
 
 const config = Config.read();
 const gluon = await Gluon.open(config.url, {
     windowSize: config.windowSize,
+    getSwitches: getSwitches,
     onLoad: () => {
         function send(event: string, data: unknown) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment

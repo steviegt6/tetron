@@ -1,8 +1,8 @@
 diff --git a/node_modules/@gluon-framework/gluon/gluon.d.ts b/node_modules/@gluon-framework/gluon/gluon.d.ts
-index b8ab282..ae50985 100644
+index b8ab282..8e321fc 100644
 --- a/node_modules/@gluon-framework/gluon/gluon.d.ts
 +++ b/node_modules/@gluon-framework/gluon/gluon.d.ts
-@@ -248,7 +248,13 @@ type OpenOptions = {
+@@ -248,7 +248,16 @@ type OpenOptions = {
    forceBrowser?: Browser,
  
    /** Force Gluon to use a specific browser engine instead of automatically finding a browser itself. */
@@ -13,12 +13,57 @@ index b8ab282..ae50985 100644
 +  windowSize?: [number, number],
 +
 +  /** Function to run when the window is closed. */
-+  onClose?: Function
++  onClose?: Function,
++
++  /** Retrieves additional command-line switches to launch the browser with. */
++  getSwitches?: (engine: BrowserEngine, browser: Browser) => Array<string>
  };
  
  /**
+diff --git a/node_modules/@gluon-framework/gluon/src/browser/chromium.js b/node_modules/@gluon-framework/gluon/src/browser/chromium.js
+index 200cde8..6f8d8c5 100644
+--- a/node_modules/@gluon-framework/gluon/src/browser/chromium.js
++++ b/node_modules/@gluon-framework/gluon/src/browser/chromium.js
+@@ -7,12 +7,13 @@ const presets = { // Presets from OpenAsar
+   'memory': '--in-process-gpu --js-flags="--lite-mode --optimize_for_size --wasm_opt --wasm_lazy_compilation --wasm_lazy_validation --always_compact" --renderer-process-limit=2 --enable-features=QuickIntensiveWakeUpThrottlingAfterLoading' // Less (?) memory usage
+ };
+ 
+-export default async ({ browserPath, dataPath }, { url, windowSize }, extra) => {
++export default async ({ browserPath, dataPath }, { url, windowSize, switches }, extra) => {
+   return await StartBrowser(browserPath, [
+     `--app=${url}`,
+     `--remote-debugging-pipe`,
+     `--user-data-dir=${dataPath}`,
+     windowSize ? `--window-size=${windowSize.join(',')}` : '',
+-    ...`--new-window --no-first-run --disable-extensions --disable-default-apps --disable-breakpad --disable-crashpad --disable-background-networking --disable-domain-reliability --disable-component-update --disable-sync --disable-features=AutofillServerCommunication ${presets.perf}`.split(' ')
++    ...`--new-window --no-first-run --disable-extensions --disable-default-apps --disable-breakpad --disable-crashpad --disable-background-networking --disable-domain-reliability --disable-component-update --disable-sync --disable-features=AutofillServerCommunication ${presets.perf}`.split(' '),
++    ...switches
+   ], 'stdio', extra);
+ };
+\ No newline at end of file
+diff --git a/node_modules/@gluon-framework/gluon/src/browser/firefox.js b/node_modules/@gluon-framework/gluon/src/browser/firefox.js
+index b10e948..d413ac8 100644
+--- a/node_modules/@gluon-framework/gluon/src/browser/firefox.js
++++ b/node_modules/@gluon-framework/gluon/src/browser/firefox.js
+@@ -4,7 +4,7 @@ import { join } from 'path';
+ import StartBrowser from '../launcher/start.js';
+ 
+ 
+-export default async ({ browserPath, dataPath }, { url, windowSize }, extra) => {
++export default async ({ browserPath, dataPath }, { url, windowSize, switches }, extra) => {
+   await mkdir(dataPath, { recursive: true });
+   await writeFile(join(dataPath, 'user.js'), `
+ user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
+@@ -79,5 +79,6 @@ html:not([tabsintitlebar="true"]) .tab-icon-image {
+     `-new-window`, url,
+     `-new-instance`,
+     `-no-remote`,
++    ...switches,
+   ], 'websocket', extra);
+ };
+\ No newline at end of file
 diff --git a/node_modules/@gluon-framework/gluon/src/index.js b/node_modules/@gluon-framework/gluon/src/index.js
-index 992171b..a7048c2 100644
+index 992171b..e0f063c 100644
 --- a/node_modules/@gluon-framework/gluon/src/index.js
 +++ b/node_modules/@gluon-framework/gluon/src/index.js
 @@ -169,7 +169,7 @@ const getBrowserType = name => { // todo: not need this
@@ -26,11 +71,19 @@ index 992171b..a7048c2 100644
  const generatePort = () => (Math.floor(Math.random() * (portRange[1] - portRange[0] + 1)) + portRange[0]);
  
 -const startBrowser = async (url, { windowSize, forceBrowser, forceEngine }) => {
-+const startBrowser = async (url, { windowSize, forceBrowser, forceEngine, onClose }) => {
++const startBrowser = async (url, { windowSize, forceBrowser, forceEngine, onClose, getSwitches }) => {
    const [ browserPath, browserName ] = await findBrowserPath(forceBrowser, forceEngine);
    const browserFriendlyName = getFriendlyName(browserName);
  
-@@ -187,6 +187,7 @@ const startBrowser = async (url, { windowSize, forceBrowser, forceEngine }) => {
+@@ -177,6 +177,7 @@ const startBrowser = async (url, { windowSize, forceBrowser, forceEngine }) => {
+ 
+   const dataPath = getDataPath(browserName);
+   const browserType = getBrowserType(browserName);
++  const switches = getSwitches(browserType);
+ 
+   log('found browser', browserName, `(${browserType} based)`, 'at path:', browserPath);
+   log('data path:', dataPath);
+@@ -187,13 +188,15 @@ const startBrowser = async (url, { windowSize, forceBrowser, forceEngine }) => {
  
    const closeHandlers = [];
    if (openingLocal && browserType === 'firefox') closeHandlers.push(await LocalServer({ localUrl, url: basePath }));
@@ -38,16 +91,25 @@ index 992171b..a7048c2 100644
  
    const Window = await (browserType === 'firefox' ? Firefox : Chromium)({
      dataPath,
-@@ -205,10 +206,10 @@ const startBrowser = async (url, { windowSize, forceBrowser, forceEngine }) => {
+     browserPath
+   }, {
+     url: openingLocal ? localUrl : url,
+-    windowSize
++    windowSize,
++    switches
+   }, {
+     browserName: browserFriendlyName,
+     url: openingLocal ? basePath : url,
+@@ -205,10 +208,10 @@ const startBrowser = async (url, { windowSize, forceBrowser, forceEngine }) => {
    return Window;
  };
  
 -export const open = async (url, { windowSize, onLoad, forceBrowser, forceEngine } = {}) => {
-+export const open = async (url, { windowSize, onLoad, forceBrowser, forceEngine, onClose } = {}) => {
++export const open = async (url, { windowSize, onLoad, forceBrowser, forceEngine, onClose, getSwitches } = {}) => {
    log('starting browser...');
  
 -  const Browser = await startBrowser(url, { windowSize, forceBrowser, forceEngine });
-+  const Browser = await startBrowser(url, { windowSize, forceBrowser, forceEngine, onClose });
++  const Browser = await startBrowser(url, { windowSize, forceBrowser, forceEngine, onClose, getSwitches });
  
    if (onLoad) {
      const toRun = `(() => {
