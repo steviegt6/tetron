@@ -1,0 +1,21 @@
+{
+    "name": "tetron-gluon",
+    "version": "1.0.0",
+    "description": "tetron gluon app",
+    "main": "index.js",
+    "exports": "./dist/index.js",
+    "type": "module",
+    "engines": {
+        "node": ">=14.16"
+    },
+    "private": true,
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Tomat",
+    "license": "LGPL-2.1",
+    "dependencies": {
+        "tetron-common": "file:../tetron-common",
+        "@gluon-framework/gluon": "^0.11.0"
+    }
+}

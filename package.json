@@ -1,19 +1,20 @@
 {
     "name": "tetron",
     "version": "1.0.0",
-    "description": "gluon-powered tetr.io app",
-    "exports": "./dist/index.js",
-    "type": "module",
-    "engines": {
-        "node": ">=14.16"
-    },
+    "description": "alternative tetr.io app",
+    "private": true,
     "scripts": {
-        "build": "tsc",
-        "start": "node ./dist/index.js",
-        "dev": "npm run build && npm run start",
-        "lint": "eslint ./src/",
-        "postinstall": "patch-patchage",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "common:install": "cd ./packages/tetron-common/ && npm install && cd ../../",
+        "common:patch": "echo \"tetron-common: Nothing to patch!\"",
+        "gluon:build": "cd ./packages/tetron-gluon/ && tsc && cd ../../",
+        "gluon:start": "cd ./packages/tetron-gluon/ && node ./dist/index.js && cd ../../",
+        "gluon:dev": "npm run gluon:build && npm run gluon:start",
+        "gluon:install": "cd ./packages/tetron-gluon/ && npm install && cd ../../",
+        "gluon:patch": "cd ./packages/tetron-gluon/ && patch-package && cd ../../",
+        "electron:install": "cd ./packages/tetron-electron/ && npm install && cd ../../",
+        "electron:patch": "echo \"tetron-electron: Nothing to patch!\"",
+        "preinstall": "npm run common:install && npm run gluon:install && npm run electron:install",
+        "postinstall": "npm run common:patch && npm run gluon:patch && npm run electron:patch"
     },
     "repository": {
         "type": "git",
@@ -33,9 +34,5 @@
         "patch-package": "^6.5.1",
         "prettier": "2.8.3",
         "typescript": "^4.9.4"
-    },
-    "dependencies": {
-        "@gluon-framework/gluon": "^0.11.0",
-        "systeminformation": "^5.17.3"
     }
 }

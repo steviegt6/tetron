@@ -1,0 +1,10 @@
+{
+  "name": "tetron-common",
+  "version": "1.0.0",
+  "description": "common code shared between tetron projects",
+  "private": "true",
+  "scripts": {
+  },
+  "author": "Tomat",
+  "license": "LGPL-2.1"
+}
