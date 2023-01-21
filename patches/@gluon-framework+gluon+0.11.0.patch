@@ -1,21 +1,19 @@
 diff --git a/node_modules/@gluon-framework/gluon/gluon.d.ts b/node_modules/@gluon-framework/gluon/gluon.d.ts
-index b8ab282..434a604 100644
+index b8ab282..ae50985 100644
 --- a/node_modules/@gluon-framework/gluon/gluon.d.ts
 +++ b/node_modules/@gluon-framework/gluon/gluon.d.ts
-@@ -248,7 +248,15 @@ type OpenOptions = {
+@@ -248,7 +248,13 @@ type OpenOptions = {
    forceBrowser?: Browser,
  
    /** Force Gluon to use a specific browser engine instead of automatically finding a browser itself. */
 -  forceEngine?: BrowserEngine
 +  forceEngine?: BrowserEngine,
 +
-+  // BEGIN: tetron
 +  /** Defines the default window size to open with. */
 +  windowSize?: [number, number],
 +
 +  /** Function to run when the window is closed. */
 +  onClose?: Function
-+  // END: tetron
  };
  
  /**
