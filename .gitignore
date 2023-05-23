@@ -1,1 +1,8 @@
-node_modules/
+.vs/
+.vscode/
+.idea/
+
+bin/
+obj/
+
+old/
