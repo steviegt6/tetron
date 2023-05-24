@@ -1,19 +1,22 @@
 ﻿using System;
 using System.IO;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using CefNet;
 
-namespace Tomat.Tetron;
+namespace Tomat.Tetron.Avalonia;
 
-internal static class Program {
+internal partial class Program {
     private const string cef_archive_name = "cef.tar.bz2";
     private const string cef_directory_name = "cef";
     private const bool external_message_pump = false;
     private const int message_pump_delay = 10;
 
-    [STAThread]
-    internal static void Main() {
+    private static CefAppImpl? app;
+    private static DispatcherTimer? messagePump;
+
+    private static void InitCef(string[] args) {
         var cefVersion = CefDownloader.GetCefVersion();
         if (cefVersion is null)
             throw new PlatformNotSupportedException("No CEF version available for this platform.");
@@ -49,40 +52,52 @@ internal static class Program {
         if (!File.Exists(icudtlDatPath))
             File.Copy(Path.Combine(cefResourcesDir, "icudtl.dat"), icudtlDatPath);
 
+        var externalMessagePump = external_message_pump || args.Contains("--external-message-pump");
+
         var settings = new CefSettings {
-            MultiThreadedMessageLoop = !external_message_pump,
-            ExternalMessagePump = external_message_pump,
-            ResourcesDirPath = Path.Combine(cefBinaryDir, "Resources"),
-            LocalesDirPath = Path.Combine(cefBinaryDir, "Resources", "locales"),
+            MultiThreadedMessageLoop = !externalMessagePump,
+            ExternalMessagePump = externalMessagePump,
+            NoSandbox = true,
+            WindowlessRenderingEnabled = true,
+            ResourcesDirPath = cefResourcesDir,
+            LocalesDirPath = cefLocalesDir,
         };
 
-        var app = new CefAppImpl();
-        app.ScheduleMessagePumpWorkCallback = async (delayMs) => {
-            await Task.Delay((int) delayMs);
-            CefApi.DoMessageLoopWork();
-        };
+        App.FrameworkInitialized += App_FrameworkInitialized;
+        App.FrameworkShutdown += App_FrameworkShutdown;
 
-        Timer? messagePump = null;
+        app = new CefAppImpl();
+        app.ScheduleMessagePumpWorkCallback = OnScheduleMessagePumpWork;
 
-        try {
-            app.Initialize(Path.Combine(cefBinaryDir, "Release"), settings);
-
-            if (external_message_pump)
-                messagePump = new Timer(_ => CefApi.DoMessageLoopWork(), null, message_pump_delay, message_pump_delay);
-
-            using var ev = new ManualResetEvent(false);
-            app.SignalForShutdown(() => ev.Set());
-            ev.WaitOne();
-        }
-        finally {
-            messagePump?.Dispose();
-            app.Shutdown();
-            app.Dispose();
-        }
+        app.Initialize(cefReleaseDir, settings);
     }
 
     private static string MakeAbsolutePath(string path) {
         // TODO: This is really evil...
         return Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location)!, path);
+    }
+
+    private static void App_FrameworkInitialized(object? sender, EventArgs e) {
+        if (!CefNetApplication.Instance.UsesExternalMessageLoop)
+            return;
+
+        messagePump = new DispatcherTimer(
+            TimeSpan.FromMilliseconds(message_pump_delay),
+            DispatcherPriority.Normal,
+            (_, _) => {
+                CefApi.DoMessageLoopWork();
+                Dispatcher.UIThread.RunJobs();
+            }
+        );
+        messagePump.Start();
+    }
+
+    private static void App_FrameworkShutdown(object? sender, EventArgs e) {
+        messagePump?.Stop();
+    }
+
+    private static async void OnScheduleMessagePumpWork(long delayMs) {
+        await Task.Delay((int)delayMs);
+        Dispatcher.UIThread.Post(CefApi.DoMessageLoopWork);
     }
 }

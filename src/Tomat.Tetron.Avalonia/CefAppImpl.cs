@@ -1,10 +1,10 @@
 ﻿using System;
 using CefNet;
 
-namespace Tomat.Tetron;
+namespace Tomat.Tetron.Avalonia;
 
 public sealed class CefAppImpl : CefNetApplication {
-    public Action<long> ScheduleMessagePumpWorkCallback { get; set; }
+    public Action<long>? ScheduleMessagePumpWorkCallback { get; set; }
 
     protected override void OnBeforeCommandLineProcessing(string processType, CefCommandLine commandLine) {
         base.OnBeforeCommandLineProcessing(processType, commandLine);
