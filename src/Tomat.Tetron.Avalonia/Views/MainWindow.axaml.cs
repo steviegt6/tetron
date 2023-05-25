@@ -64,9 +64,13 @@ public sealed partial class MainWindow : AppWindow {
         if (navItem.Name == "SettingsItem")
             Frame.Navigate(typeof(SettingsPage));
 
-        switch (navItem.Name) {
-            case "HomePage":
+        switch (navItem.Tag) {
+            case nameof(HomePage):
                 Frame.Navigate(typeof(HomePage));
+                break;
+
+            case nameof(CefPage):
+                Frame.Navigate(typeof(CefPage));
                 break;
         }
     }
