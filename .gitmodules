@@ -1,4 +1,0 @@
-[submodule "src/beutl"]
-	path = src/beutl
-	url = https://github.com/steviegt6/beutl
-	branch = main
