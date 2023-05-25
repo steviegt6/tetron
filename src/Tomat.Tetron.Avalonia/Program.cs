@@ -1,14 +1,15 @@
 ﻿using Avalonia;
-using System;
 using Avalonia.ReactiveUI;
-using FluentAvalonia.UI.Windowing;
+using System;
 
 namespace Tomat.Tetron.Avalonia;
 
-internal static partial class Program {
+class Program {
+    // Initialization code. Don't use any Avalonia, third-party APIs or any
+    // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
+    // yet and stuff might break.
     [STAThread]
-    internal static void Main(string[] args) {
-        InitCef(args);
+    public static void Main(string[] args) {
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
@@ -16,12 +17,7 @@ internal static partial class Program {
     public static AppBuilder BuildAvaloniaApp() {
         return AppBuilder.Configure<App>()
                          .UsePlatformDetect()
-                         .UseReactiveUI()
                          .LogToTrace()
-                         .UseFAWindowing()
-                         .With(new Win32PlatformOptions {
-                             UseWindowsUIComposition = true,
-                             CompositionBackdropCornerRadius = 8f,
-                         });
+                         .UseReactiveUI();
     }
 }

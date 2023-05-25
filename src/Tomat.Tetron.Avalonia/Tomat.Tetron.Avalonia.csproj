@@ -2,47 +2,33 @@
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net7.0</TargetFramework>
-        <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
-
-        <AvaloniaUseCompiledBindingsByDefaukt>true</AvaloniaUseCompiledBindingsByDefaukt>
     </PropertyGroup>
+
     <ItemGroup>
-        <None Remove=".gitignore"/>
+        <AvaloniaResource Include="Assets\**" />
     </ItemGroup>
 
     <ItemGroup>
-        <AvaloniaResource Include="Assets\**"/>
+        <ProjectCapability Include="Avalonia" />
+        <TrimmerRootAssembly Include="Avalonia.Themes.Fluent" />
     </ItemGroup>
 
     <ItemGroup>
-        <TrimmerRootDescriptor Include="Roots.xml"/>
+        <PackageReference Include="Avalonia" Version="11.0.0-preview8" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview8" />
+        <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.0-preview8" />
+        <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.0-preview8" />
+        <!--<PackageReference Include="FluentAvalonia.UI.Windowing" Version="2.0.0-preview5"/>-->
+        <PackageReference Include="FluentAvaloniaUI" Version="2.0.0-preview8" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        <!--<PackageReference Include="XamlNameReferenceGenerator" Version="1.6.1"/>-->
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.0.0-preview8"/>
-        <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview8"/>
-        <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.0.0-preview8"/>
-        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.0-preview8"/>
-        <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.0-preview8"/>
-        <PackageReference Include="FluentAvalonia.UI.Windowing" Version="2.0.0-preview5"/>
-        <PackageReference Include="FluentAvaloniaUI" Version="2.0.0-preview8"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <!-- <ProjectReference Include="..\beutl\src\Beutl.Controls\Beutl.Controls.csproj"/> -->
-        <ProjectReference Include="..\Tomat.Tetron\Tomat.Tetron.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Compile Update="App.Cef.cs">
-            <DependentUpon>App.axaml</DependentUpon>
-        </Compile>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="ViewModels"/>
+      <ProjectReference Include="..\Tomat.Tetron\Tomat.Tetron.csproj" />
     </ItemGroup>
 </Project>
