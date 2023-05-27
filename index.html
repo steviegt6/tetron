@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TETRON</title>
+    <script type="module" src="/src/bootstrapper/index.ts" defer></script>
+    <style>
+      @font-face {
+        font-family: "C";
+        font-weight: 500;
+        src: url("/src/assets/fonts/cr.ttf");
+      }
+
+      html {
+        background-color: #00000000;
+        color: #dddddd;
+        font-family: "C";
+        width: 100%;
+        height: 100%;
+
+        margin: 0;
+        padding: 0;
+
+        user-select: none;
+      }
+
+      body {
+        width: 100%;
+        height: 100%;
+
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        background-color: #080808fa;
+        border-radius: 8px;
+
+        width: 100%;
+        height: 100%;
+
+        display: grid;
+        grid-template-rows: 40% 60%;
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "logo"
+          "status-container";
+
+        justify-items: center;
+      }
+
+      #logo {
+        grid-area: logo;
+        margin-top: auto;
+      }
+
+      #status-container {
+        grid-area: status-container;
+        margin-top: 10px;
+
+        width: 80%;
+
+        overflow-y: auto;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+
+        mask-image: linear-gradient(
+          to bottom,
+          transparent 0%,
+          black 48px,
+          black calc(100% - 48px),
+          transparent 100%
+        );
+      }
+
+      #status-container::-webkit-scrollbar {
+        display: none;
+      }
+
+      .load-status {
+        margin: 0;
+        text-align: center;
+
+        width: 100%;
+      }
+
+      .load-status-text {
+        margin: 0;
+        margin-top: 10px;
+      }
+
+      .load-status-progress {
+        margin: 0;
+        margin-bottom: 10px;
+
+        width: 100%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container" data-tauri-drag-region>
+      <img id="logo" src="/src/assets/tetron-logo.png" with="90" height="90" />
+      <div id="status-container"></div>
+    </div>
+  </body>
+</html>
