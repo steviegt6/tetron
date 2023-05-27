@@ -50,6 +50,15 @@
         "decorations": false,
         "transparent": true
       }
-    ]
+    ],
+    "updater": {
+      "active": true,
+      "dialog": false,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQxQjhCNDM3OEQyQUE3QUIKUldTcnB5cU5ON1M0UVdZRWlBaWQ3RzkxancxRGN2NTNQMkdBMGlQMnhIbFBLb1A4cDllWjhKYzkK",
+      "windows": {
+        "installMode": "passive",
+        "installerArgs": []
+      }
+    }
   }
 }

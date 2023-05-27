@@ -1,3 +1,10 @@
+import {
+  checkUpdate,
+  installUpdate,
+  onUpdaterEvent,
+} from "@tauri-apps/api/updater";
+import { relaunch } from "@tauri-apps/api/process";
+
 type ProgressBarOptions = {
   current?: number;
   total?: number;
@@ -107,42 +114,43 @@ function createLoadStatus(options: LoadStatusOptions): LoadStatus {
   );
 }
 
-function bootstrap(): void {
+const busy = { busy: true };
+
+async function bootstrap(): Promise<void> {
   statusContainer = document.getElementById("status-container");
   if (!statusContainer) {
     throw new Error("Could not find `status-container`!");
   }
 
-  const testStatus = createLoadStatus({
-    text: "Testing...",
-    progress: { current: 1, total: 2 },
+  const updateStatus = createLoadStatus({
+    text: "Checking for updates...",
+    progress: busy,
   });
 
-  const testStatus2 = createLoadStatus({
-    text: "I have a busy progress bar",
-    progress: { busy: true },
+  updateStatus.apply();
+
+  const unlisten = await onUpdaterEvent(({ error, status }) => {
+    console.log("Updater event", error, status);
   });
 
-  const testStatus3 = createLoadStatus({
-    text: "I have a not-busy progress bar",
-    progress: { current: 36, total: 100 },
-  });
+  try {
+    const { shouldUpdate, manifest } = await checkUpdate();
 
-  const testStatus4 = createLoadStatus({
-    text: "AAAAAAAAAA",
-    progress: { current: 36, total: 100 },
-  });
+    if (shouldUpdate) {
+      console.log("Should update", manifest);
+    }
 
-  const testStatus5 = createLoadStatus({
-    text: "BBBBBBBBBB",
-    progress: { current: 36, total: 100 },
-  });
+    await installUpdate();
+    await relaunch();
+  } catch (e) {
+    console.error(e);
+    updateStatus.updateStatus({
+      text: "Error checking for updates",
+      progress: busy,
+    });
+  }
 
-  testStatus.apply();
-  testStatus2.apply();
-  testStatus3.apply();
-  testStatus4.apply();
-  testStatus5.apply();
+  unlisten();
 }
 
 window.addEventListener("DOMContentLoaded", bootstrap);
